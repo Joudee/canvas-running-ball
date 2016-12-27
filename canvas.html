@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title></title>
+	<style type="text/css">
+		#myCanvas {
+			display: block;
+			background-color: #2aecce;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="myCanvas" width="600" height="600"></canvas>
+</body>
+<script>
+	var canvas = document.getElementById('myCanvas');
+	var ctx = canvas.getContext('2d');
+	ctx.translate(0.5, 0.5);
+	var ballCount = 200,
+			ballArr = [],
+			moveDis = {},
+			canConnect = false,
+			connectArr = [];
+
+	//随机函数
+	function randomNum(m, n) {
+		return Math.floor(Math.random() * (n - m + 1) + m);
+	}
+
+	//创建一个小球类
+	function Ball() {
+		//随机一个小球半径
+		this.r = randomNum(1, 2);
+		//随机颜色
+		var color = '#fff';
+		//随机一个小球的颜色
+		this.color = color;
+		//随机一个小球x轴的位置和y轴的位置
+		this.x = randomNum(this.r, canvas.width - this.r);
+		this.y = randomNum(this.r, canvas.height - this.r);
+		this.speedX = randomNum(1, 3) * (randomNum(0, 1) ? 1 : -1);
+        this.speedY = randomNum(1, 3) * (randomNum(0, 1) ? 1 : -1);
+	}
+
+	Ball.prototype.draw = function() {
+		//开始绘制
+		ctx.beginPath();
+		ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2, false);
+		ctx.fillStyle = this.color;
+		ctx.fill();
+	}
+
+	Ball.prototype.move = function(){
+		this.x += this.speedX;
+        this.y += this.speedY;
+        //小球碰到左边界的处理 反弹
+        if(this.x <= this.r) {
+            this.x = this.r;
+            //反弹
+            this.speedX *= -1;
+        }
+        //小球碰到右边界的处理 反弹
+        if(this.x >= canvas.width - this.r) {
+            this.x = canvas.width - this.r;
+            //反弹
+            this.speedX *= -1;
+        }
+        //小球碰到上边界的处理 反弹
+        if(this.y <= this.r) {
+            this.y = this.r;
+            //反弹
+            this.speedY *= -1;
+        }
+        //小球碰到下边界的处理 反弹
+        if(this.y >= canvas.height - this.r) {
+            this.y = canvas.height - this.r;
+            //反弹
+            this.speedY *= -1;
+        }
+	}
+
+	for(var i=0;i<ballCount;i++){
+		var ballObj = new Ball();
+		ballArr.push(ballObj);
+	}
+
+	for(var j=0;j<ballArr.length;j++){
+		ballArr[j].draw();
+	}
+
+	function connectBall(){
+		for(var k=0;k<connectArr.length;k++){
+			for(var l=0;l<connectArr.length-1;l++){
+				if(getBallDistance(connectArr[k],connectArr[l])>40&&getBallDistance(connectArr[k],connectArr[l])<80){
+					ctx.beginPath();
+	                ctx.moveTo(connectArr[k].x, connectArr[k].y);
+	                ctx.lineTo(connectArr[l].x, connectArr[l].y);
+	                ctx.strokeStyle = '#fff';
+	                ctx.lineWidth = 1;
+	                ctx.stroke();
+				}
+			}
+		}
+	}
+
+	function getBallDistance(dis1,dis2){
+		var disX = dis1.x-dis2.x,
+			disY = dis1.y-dis2.y;
+		return Math.sqrt(disX*disX+disY*disY);
+	}
+
+	setInterval(function(){
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		for(var g=0;g<ballCount;g++){
+			ballArr[g].move();
+			ballArr[g].draw();
+		}
+		if(canConnect){
+			connectArr = [];
+			for(var g=0;g<ballCount;g++){
+				if(getBallDistance(moveDis,ballArr[g])<100){
+					connectArr.push(ballArr[g]);
+				}
+			}
+			connectBall();
+		}
+	},40);
+
+	canvas.onmouseenter = function (e) {
+		canConnect = true;
+    }
+
+    canvas.onmousemove = function (e) {
+    	moveDis = {
+			x:e.pageX,
+			y:e.pageY
+		}
+    }
+
+    canvas.onmouseleave = function () {
+    	canConnect = false;
+    }
+</script>
+</html>
